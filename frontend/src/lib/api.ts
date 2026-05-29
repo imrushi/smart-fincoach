@@ -1,10 +1,22 @@
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || "";
 
+function getAuthHeader(): Record<string, string> {
+  if (typeof window === "undefined") return {};
+  const token = localStorage.getItem("fc_token");
+  return token ? { Authorization: `Bearer ${token}` } : {};
+}
+
 async function fetchAPI<T>(path: string, options?: RequestInit): Promise<T> {
   const res = await fetch(`${API_BASE}${path}`, {
-    headers: { "Content-Type": "application/json", ...options?.headers },
+    headers: { "Content-Type": "application/json", ...getAuthHeader(), ...options?.headers },
     ...options,
   });
+  if (res.status === 401) {
+    // Token expired or invalid — clear and reload
+    localStorage.removeItem("fc_token");
+    window.location.reload();
+    throw new Error("Session expired");
+  }
   if (!res.ok) {
     const err = await res.json().catch(() => ({ detail: res.statusText }));
     throw new Error(err.detail || `API error ${res.status}`);
@@ -13,6 +25,20 @@ async function fetchAPI<T>(path: string, options?: RequestInit): Promise<T> {
 }
 
 export const api = {
+  // Auth
+  login: async (password: string, otp: string) => {
+    const res = await fetch(`${API_BASE}/api/auth/login`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ password, otp }),
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({ detail: "Login failed" }));
+      throw new Error(err.detail || `Login failed ${res.status}`);
+    }
+    return res.json() as Promise<{ access_token: string; expires_at: string }>;
+  },
+
   // Health
   health: () => fetchAPI<{ status: string }>("/api/health"),
 
@@ -21,7 +47,16 @@ export const api = {
     const form = new FormData();
     form.append("file", file);
     form.append("source_type", sourceType);
-    const res = await fetch(`${API_BASE}/api/uploads/`, { method: "POST", body: form });
+    const res = await fetch(`${API_BASE}/api/uploads/`, {
+      method: "POST",
+      headers: { ...getAuthHeader() },
+      body: form,
+    });
+    if (res.status === 401) {
+      localStorage.removeItem("fc_token");
+      window.location.reload();
+      throw new Error("Session expired");
+    }
     if (!res.ok) {
       const err = await res.json().catch(() => ({ detail: res.statusText }));
       throw new Error(err.detail || `Upload failed ${res.status}`);

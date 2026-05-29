@@ -9,6 +9,8 @@ from app.core.config import get_settings
 from app.core.database import engine, Base, async_session
 from app.core.seed import seed_categories_and_rules
 from app.api import uploads, transactions, categories, dashboard
+from app.api.auth import router as auth_router, verify_token
+from fastapi import Depends
 
 
 @asynccontextmanager
@@ -42,10 +44,11 @@ app.add_middleware(
 )
 
 # Register routers
-app.include_router(uploads.router)
-app.include_router(transactions.router)
-app.include_router(categories.router)
-app.include_router(dashboard.router)
+app.include_router(auth_router)  # Public (login endpoint)
+app.include_router(uploads.router, dependencies=[Depends(verify_token)])
+app.include_router(transactions.router, dependencies=[Depends(verify_token)])
+app.include_router(categories.router, dependencies=[Depends(verify_token)])
+app.include_router(dashboard.router, dependencies=[Depends(verify_token)])
 
 
 @app.get("/api/health")

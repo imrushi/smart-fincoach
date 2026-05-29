@@ -1,13 +1,14 @@
 "use client";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
-  LayoutDashboard, Upload, List, Gauge, RotateCcw, Cog, Zap
+  LayoutDashboard, Upload, List, Gauge, RotateCcw, Cog, Zap, LogOut
 } from "lucide-react";
 import Dashboard from "@/components/Dashboard";
 import FileUpload from "@/components/FileUpload";
 import TransactionList from "@/components/TransactionList";
 import BudgetView from "@/components/BudgetView";
 import SubscriptionView from "@/components/SubscriptionView";
+import LoginPage from "@/components/LoginPage";
 import { api } from "@/lib/api";
 
 const NAV_ITEMS = [
@@ -19,8 +20,24 @@ const NAV_ITEMS = [
 ];
 
 export default function Home() {
+  const [token, setToken] = useState<string | null>(null);
+  const [checking, setChecking] = useState(true);
   const [activeTab, setActiveTab] = useState("dashboard");
   const [pipelineRunning, setPipelineRunning] = useState(false);
+
+  useEffect(() => {
+    const stored = localStorage.getItem("fc_token");
+    setToken(stored);
+    setChecking(false);
+  }, []);
+
+  const logout = () => {
+    localStorage.removeItem("fc_token");
+    setToken(null);
+  };
+
+  if (checking) return null;
+  if (!token) return <LoginPage onLogin={(t) => setToken(t)} />;
 
   const runPipeline = async () => {
     setPipelineRunning(true);
@@ -41,6 +58,7 @@ export default function Home() {
             </div>
             <span className="font-bold text-lg">FinCoach</span>
           </div>
+          <div className="flex items-center gap-2">
           <button
             onClick={runPipeline}
             disabled={pipelineRunning}
@@ -50,6 +68,14 @@ export default function Home() {
             <Zap className={`w-3.5 h-3.5 ${pipelineRunning ? "animate-pulse" : ""}`} />
             {pipelineRunning ? "Processing..." : "Run Pipeline"}
           </button>
+          <button
+            onClick={logout}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-red-500/10 text-red-400 text-xs font-medium hover:bg-red-500/20 transition-all"
+            title="Logout"
+          >
+            <LogOut className="w-3.5 h-3.5" />
+          </button>
+          </div>
         </div>
       </header>
 

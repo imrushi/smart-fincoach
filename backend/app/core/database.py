@@ -14,7 +14,7 @@ elif _db_url.startswith("postgres://"):
 
 # asyncpg needs ssl as a connect_arg, not a query param
 # Always disable statement_cache_size for pgbouncer compatibility
-_connect_args = {"statement_cache_size": 0, "prepared_statement_cache_size": 0}
+_connect_args = {"statement_cache_size": 0}
 if "supabase" in _db_url or "pooler" in _db_url or settings.APP_ENV == "production":
     import ssl
     _ssl_ctx = ssl.create_default_context()
@@ -31,7 +31,20 @@ if "supabase" in _db_url or "pooler" in _db_url or settings.APP_ENV == "producti
 _use_nullpool = "pooler" in _db_url or "supabase" in _db_url or settings.APP_ENV == "production"
 _pool_kwargs = {"poolclass": NullPool} if _use_nullpool else {"pool_size": 5, "max_overflow": 10}
 
-engine = create_async_engine(_db_url, echo=False, connect_args=_connect_args, pool_pre_ping=True, **_pool_kwargs)
+engine = create_async_engine(
+    _db_url,
+    echo=False,
+    connect_args=_connect_args,
+    pool_pre_ping=True,
+    **_pool_kwargs,
+)
+
+# Disable prepared statements at the engine level for pgbouncer compatibility
+from sqlalchemy import event
+
+@event.listens_for(engine.sync_engine, "connect")
+def _on_connect(dbapi_conn, connection_record):
+    dbapi_conn._statement_cache_size = 0
 async_session = async_sessionmaker(engine, class_=AsyncSession, expire_on_commit=False)
 
 

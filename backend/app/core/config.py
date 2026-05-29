@@ -24,6 +24,12 @@ class Settings(BaseSettings):
     # Encryption key for stored PDFs (Fernet)
     FILE_ENCRYPTION_KEY: str = ""
 
+    # Admin auth
+    ADMIN_PASSWORD: str = "change-me"
+    ADMIN_OTP: str = "123456"
+    JWT_SECRET: str = "change-me-jwt-secret-use-openssl-rand-hex-32"
+    JWT_EXPIRY_HOURS: int = 24
+
     # Upload
     UPLOAD_DIR: str = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), "uploads")
     MAX_UPLOAD_SIZE_MB: int = 20
