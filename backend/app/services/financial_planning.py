@@ -233,6 +233,7 @@ async def get_debt_to_income(db: AsyncSession) -> dict:
     # Monthly EMI (from EMI & Loans category)
     emi_r = await db.execute(
         select(func.coalesce(func.sum(Transaction.amount), 0))
+        .select_from(Transaction)
         .join(Category, Transaction.category_id == Category.id)
         .where(
             Transaction.is_debit.is_(True),
@@ -248,6 +249,7 @@ async def get_debt_to_income(db: AsyncSession) -> dict:
     # Also get rent as a fixed obligation
     rent_r = await db.execute(
         select(func.coalesce(func.sum(Transaction.amount), 0))
+        .select_from(Transaction)
         .join(Category, Transaction.category_id == Category.id)
         .where(
             Transaction.is_debit.is_(True),
@@ -310,20 +312,6 @@ async def get_emergency_fund_health(db: AsyncSession) -> dict:
     avg_monthly_expense = float(Decimal(str(expense_r.scalar()))) / 3
 
     # Net savings accumulated (total income - total expenses over full history)
-    savings_r = await db.execute(
-        select(
-            func.coalesce(func.sum(
-                func.case(
-                    (Transaction.is_debit.is_(False), Transaction.amount),
-                    else_=Transaction.amount * -1,
-                )
-            ), 0)
-        ).where(
-            Transaction.is_self_transfer.is_(False),
-            Transaction.source_type.in_(BANK_SOURCES),
-            Transaction.transaction_type.in_([TransactionType.INCOME, TransactionType.EXPENSE]),
-        )
-    )
     # Use balance_after from most recent transaction as proxy for liquid savings
     latest_balance_r = await db.execute(
         select(Transaction.balance_after).where(
