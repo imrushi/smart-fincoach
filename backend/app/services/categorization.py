@@ -17,6 +17,7 @@ from app.models.models import (
     TransactionType, SourceType
 )
 from app.core.config import get_settings
+from app.services.llm import get_llm_client, get_llm_model
 
 
 # ── Tier 1: Rule-based matching ──────────────────────────────────────────────
@@ -68,13 +69,11 @@ async def categorize_by_merchant_cache(txn: Transaction, db: AsyncSession) -> UU
 
 async def categorize_by_llm(txn: Transaction, categories: list[Category], db: AsyncSession) -> tuple[UUID | None, float]:
     """Ask gpt-4o-mini to categorize. Cache result per merchant."""
-    settings = get_settings()
-    if not settings.OPENAI_API_KEY:
+    client = get_llm_client()
+    if not client:
         return None, 0.0
 
-    import openai
-    client = openai.AsyncOpenAI(api_key=settings.OPENAI_API_KEY)
-
+    model = get_llm_model()
     cat_list = ", ".join([f"{c.name} ({c.icon})" for c in categories])
     merchant = _extract_merchant(txn) or txn.raw_narration[:100]
 
@@ -92,7 +91,7 @@ Reply with JUST the category name, nothing else."""
 
     try:
         resp = await client.chat.completions.create(
-            model="gpt-4o-mini",
+            model=model,
             messages=[{"role": "user", "content": prompt}],
             temperature=0,
             max_tokens=20,

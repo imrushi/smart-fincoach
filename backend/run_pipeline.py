@@ -17,7 +17,7 @@ async def run():
         transfers = await detect_self_transfers(db)
         print(f"  {transfers} detected")
 
-        print("Step 3: Categorizing (this may call OpenAI for new merchants)...")
+        print("Step 3: Categorizing (this may call OpenAI/OpenRouter for new merchants)...")
         count = await categorize_all_uncategorized(db)
         print(f"  {count} transactions categorized")
 

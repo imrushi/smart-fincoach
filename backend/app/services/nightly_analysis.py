@@ -22,6 +22,7 @@ from app.models.models import (
 )
 from app.services.reconciliation import BANK_SOURCES
 from app.services.insights import get_month_summary, get_category_breakdown, detect_recurring_subscriptions
+from app.services.llm import get_llm_client, get_llm_model
 from app.core.config import get_settings
 
 
@@ -295,7 +296,7 @@ async def run_nightly_analysis(db: AsyncSession) -> dict:
 
     # Generate LLM summary if there are findings
     llm_summary = None
-    if settings.OPENAI_API_KEY and all_findings:
+    if (settings.OPENAI_API_KEY or settings.OPENROUTER_API_KEY) and all_findings:
         llm_summary = await _generate_nightly_llm_summary(db, all_findings, savings)
 
     await db.flush()
@@ -321,9 +322,10 @@ async def run_nightly_analysis(db: AsyncSession) -> dict:
 
 async def _generate_nightly_llm_summary(db: AsyncSession, findings: list, savings: dict) -> str:
     """Generate LLM-powered nightly analysis summary."""
-    settings = get_settings()
-    import openai
-    client = openai.AsyncOpenAI(api_key=settings.OPENAI_API_KEY)
+    client = get_llm_client()
+    if not client:
+        return "LLM analysis unavailable. Configure OPENAI_API_KEY or OPENROUTER_API_KEY."
+    model = get_llm_model()
 
     today = date.today()
     m_start = today.replace(day=1)
@@ -355,7 +357,7 @@ Be specific with ₹ amounts. Keep under 200 words. Tone: professional but frien
 
     try:
         resp = await client.chat.completions.create(
-            model="gpt-4o-mini",
+            model=model,
             messages=[{"role": "user", "content": prompt}],
             temperature=0.7,
             max_tokens=400,

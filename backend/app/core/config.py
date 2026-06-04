@@ -18,8 +18,13 @@ class Settings(BaseSettings):
     SUPABASE_ANON_KEY: str = ""
     SUPABASE_SERVICE_ROLE_KEY: str = ""
 
-    # OpenAI
+    # OpenAI / OpenRouter
     OPENAI_API_KEY: str = ""
+    OPENAI_API_BASE_URL: str = ""
+    OPENROUTER_API_KEY: str = ""
+    OPENROUTER_BASE_URL: str = "https://openrouter.ai/v1"
+    OPENROUTER_MODEL: str = "gpt-4o-mini"
+    AI_MODEL: str = "gpt-4o-mini"
 
     # Encryption key for stored PDFs (Fernet)
     FILE_ENCRYPTION_KEY: str = ""

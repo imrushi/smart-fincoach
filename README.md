@@ -51,6 +51,6 @@ Open http://localhost:3000
 | Frontend | Next.js 14, TypeScript, Tailwind CSS, Recharts, Lucide Icons |
 | Backend | FastAPI, SQLAlchemy 2.0, Pydantic v2, pdfplumber |
 | Database | PostgreSQL 16 + pgvector |
-| AI | OpenAI gpt-4o-mini + text-embedding-3-small |
+| AI | OpenAI / OpenRouter gpt-4o-mini + text-embedding-3-small |
 | Security | Fernet encryption at rest, SHA-256 dedup |
 

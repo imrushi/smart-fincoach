@@ -14,6 +14,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.models.models import Transaction, Category, TransactionType, SourceType
 from app.schemas.schemas import MonthSummary, CategorySpend
 from app.services.reconciliation import BANK_SOURCES
+from app.services.llm import get_llm_client, get_llm_model
 from app.core.config import get_settings
 
 
@@ -137,8 +138,8 @@ async def detect_recurring_subscriptions(db: AsyncSession) -> list[dict]:
 async def generate_ai_insight(db: AsyncSession) -> str | None:
     """Generate a weekly AI narrative summary using GPT."""
     settings = get_settings()
-    if not settings.OPENAI_API_KEY:
-        return "Configure OPENAI_API_KEY to enable AI insights."
+    if not (settings.OPENAI_API_KEY or settings.OPENROUTER_API_KEY):
+        return "Configure OPENAI_API_KEY or OPENROUTER_API_KEY to enable AI insights."
 
     today = date.today()
     current = await get_month_summary(db, today)
@@ -156,12 +157,14 @@ Top categories this month:
 Active subscriptions: {len(subs)} totaling ₹{sum(s['monthly_cost'] for s in subs):,.0f}/month
 {chr(10).join(f"- {s['merchant']}: ₹{s['monthly_cost']:,.0f}/mo" for s in subs[:5])}"""
 
-    import openai
-    client = openai.AsyncOpenAI(api_key=settings.OPENAI_API_KEY)
+    client = get_llm_client()
+    if not client:
+        return "AI client not configured."
+    model = get_llm_model()
 
     try:
         resp = await client.chat.completions.create(
-            model="gpt-4o-mini",
+            model=model,
             messages=[
                 {"role": "system", "content": "You are a smart personal finance coach for an Indian user. Be concise, actionable, and encouraging. Use ₹ for amounts. Max 200 words."},
                 {"role": "user", "content": f"Analyze my finances and give me actionable advice:\n\n{summary_text}"},
