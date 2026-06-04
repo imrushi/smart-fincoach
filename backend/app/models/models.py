@@ -28,6 +28,8 @@ class TransactionType(str, PyEnum):
 class SourceType(str, PyEnum):
     ICICI_BANK = "ICICI_BANK"
     HDFC_BANK = "HDFC_BANK"
+    SBI_BANK = "SBI_BANK"
+    BOB_BANK = "BOB_BANK"
     PHONEPE = "PHONEPE"
     GOOGLEPAY = "GOOGLEPAY"
     CRED = "CRED"

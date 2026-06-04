@@ -1,6 +1,6 @@
 # FinCoach — Smart Personal Finance Ledger & AI Coach
 
-A personal finance app that reconciles your bank statements (ICICI, HDFC) with UPI app histories (PhonePe, Google Pay), auto-categorizes transactions using AI, tracks budgets with run-rate alerts, and provides AI-powered savings coaching.
+A personal finance app that reconciles your bank statements (ICICI, HDFC, SBI, Bank of Baroda) with UPI app histories (PhonePe, Google Pay), auto-categorizes transactions using AI, tracks budgets with run-rate alerts, and provides AI-powered savings coaching.
 
 ## Architecture
 

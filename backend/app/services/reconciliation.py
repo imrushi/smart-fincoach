@@ -16,7 +16,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.models.models import Transaction, ReconciliationMethod, SourceType
 
 # Bank sources vs UPI app sources
-BANK_SOURCES = {SourceType.ICICI_BANK, SourceType.HDFC_BANK}
+BANK_SOURCES = {SourceType.ICICI_BANK, SourceType.HDFC_BANK, SourceType.SBI_BANK, SourceType.BOB_BANK}
 UPI_SOURCES = {SourceType.PHONEPE, SourceType.GOOGLEPAY, SourceType.CRED, SourceType.IMOBILE}
 
 

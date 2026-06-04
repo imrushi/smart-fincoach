@@ -14,6 +14,8 @@ from app.schemas.schemas import UploadOut
 from app.parsers.base import BaseParser
 from app.parsers.icici_parser import ICICIBankParser
 from app.parsers.hdfc_parser import HDFCBankParser
+from app.parsers.sbi_parser import SBIBankParser
+from app.parsers.bob_parser import BankOfBarodaParser
 from app.parsers.phonepe_parser import PhonePeParser
 from app.parsers.gpay_parser import GooglePayParser
 from app.services.reconciliation import reconcile_all, detect_self_transfers
@@ -25,6 +27,8 @@ router = APIRouter(prefix="/api/uploads", tags=["uploads"])
 PARSERS: dict[SourceType, BaseParser] = {
     SourceType.ICICI_BANK: ICICIBankParser(),
     SourceType.HDFC_BANK: HDFCBankParser(),
+    SourceType.SBI_BANK: SBIBankParser(),
+    SourceType.BOB_BANK: BankOfBarodaParser(),
     SourceType.PHONEPE: PhonePeParser(),
     SourceType.GOOGLEPAY: GooglePayParser(),
 }
